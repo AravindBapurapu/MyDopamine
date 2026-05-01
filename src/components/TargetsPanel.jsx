@@ -18,11 +18,26 @@ export default function TargetsPanel() {
   const todayDone = habits.filter((h) => h.progress?.[today]?.completed).length;
   const todayPct = habits.length ? Math.round((todayDone / habits.length) * 100) : 0;
 
-  // This week's completion (last week from weeklyReport)
-  const thisWeekPct =
-    weeklyReport.length
-      ? weeklyReport[weeklyReport.length - 1].percent
-      : 0;
+  // This week's completion - find the week containing today
+  let thisWeekPct = 0;
+  let thisWeekDone = 0;
+  let thisWeekTotal = 0;
+  
+  if (monthMeta.weeks && monthMeta.weeks.length > 0) {
+    // Find which week contains today
+    const thisWeek = monthMeta.weeks.find(week => 
+      week.days.some(day => day.fullDate === today)
+    ) || monthMeta.weeks[monthMeta.weeks.length - 1];
+    
+    if (thisWeek) {
+      const weekReport = weeklyReport.find(w => w.name === thisWeek.label);
+      if (weekReport) {
+        thisWeekPct = weekReport.percent;
+        thisWeekDone = weekReport.done;
+        thisWeekTotal = weekReport.total;
+      }
+    }
+  }
 
   // Monthly completion
   const monthlyPct = overallStats.percent;
@@ -44,8 +59,8 @@ export default function TargetsPanel() {
       label: "Weekly Target",
       period: "This Week",
       actual: thisWeekPct,
-      done: weeklyReport[weeklyReport.length - 1]?.done || 0,
-      total: weeklyReport[weeklyReport.length - 1]?.total || 0,
+      done: thisWeekDone,
+      total: thisWeekTotal,
       color: "#06b6d4",
       bg: "bg-cyan-50 dark:bg-cyan-900/20",
       border: "border-cyan-100 dark:border-cyan-800/30",
@@ -76,7 +91,7 @@ export default function TargetsPanel() {
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-5">
         <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
           <Target size={18} className="text-emerald-500" />
         </div>
@@ -84,10 +99,10 @@ export default function TargetsPanel() {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Progress vs Targets</p>
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Performance Goals</p>
         </div>
-        <p className="ml-auto text-[10px] text-slate-400">Click pencil to edit targets</p>
+        <p className="sm:ml-auto text-[10px] text-slate-400">Click pencil to edit targets</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {panels.map(({ key, label, period, actual, done, total, color, bg, border }, i) => {
           const target = targets[key];
           const met = actual >= target;

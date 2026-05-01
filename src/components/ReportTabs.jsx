@@ -21,15 +21,15 @@ export default function ReportTabs() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Tab switcher */}
-      <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1 shadow-sm">
+      <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-full">
         {TABS.map(({ view, label, Icon }) => (
           <button
             key={view}
             onClick={() => setReportView(view)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
               reportView === view
-                ? "bg-violet-500 text-white shadow-sm"
-                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5"
             }`}
           >
             <Icon size={14} />

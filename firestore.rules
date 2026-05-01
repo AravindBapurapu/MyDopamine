@@ -9,9 +9,10 @@ service cloud.firestore {
     
     // Habits collection
     match /habits/{document} {
-      allow read, write: if request.auth != null && 
-        resource == null || resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read, write: if request.auth != null && (
+        resource == null || 
+        resource.data.userId == request.auth.uid
+      );
     }
   }
 }

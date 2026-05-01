@@ -161,11 +161,12 @@ export const HabitProvider = ({ children }) => {
     }));
   };
 
-  // FIX #2: clicking checkbox opens note modal; unchecking works directly
+  // Simple checkbox toggle without notes
   const handleCheckboxClick = (habitId, fullDate) => {
     const habit = (monthsData[monthKey] || []).find((h) => h.id === habitId);
     if (!habit) return;
     const current = habit.progress?.[fullDate]?.completed || false;
+    
     if (current) {
       // Uncheck → remove entry
       setTrackerData((prev) => ({
@@ -181,8 +182,23 @@ export const HabitProvider = ({ children }) => {
         },
       }));
     } else {
-      // Check → open note modal
-      openNoteModal(habitId, fullDate);
+      // Check → directly mark as completed
+      setTrackerData((prev) => ({
+        ...prev,
+        monthsData: {
+          ...prev.monthsData,
+          [monthKey]: (prev.monthsData[monthKey] || []).map((h) => {
+            if (h.id !== habitId) return h;
+            return {
+              ...h,
+              progress: {
+                ...h.progress,
+                [fullDate]: { completed: true },
+              },
+            };
+          }),
+        },
+      }));
     }
   };
 

@@ -1,10 +1,10 @@
 // src/components/HabitControls.jsx
 import { useContext, useState } from "react";
 import { HabitContext } from "../context/HabitContext";
-import { Plus, CalendarDays } from "lucide-react";
+import { Plus, CalendarDays, Settings as SettingsIcon, Brain } from "lucide-react";
 import { MONTH_THEMES } from "../utils/aiInsights";
 
-export default function HabitControls() {
+export default function HabitControls({ showAI, setShowAI, setShowSettings }) {
   const {
     addHabit, selectedMonth, selectedYear,
     monthNames, setMonth, setYear, createFreshMonth,
@@ -33,12 +33,9 @@ export default function HabitControls() {
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm font-medium" style={{ color: theme.primary }}>
-            {theme.name} Theme · Discipline Dashboard
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
             {selectedMonth} {selectedYear}
-          </h1>
+          </h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -68,7 +65,25 @@ export default function HabitControls() {
             style={{ backgroundColor: theme.primary }}
           >
             <CalendarDays size={18} />
-            New Month
+            <span className="hidden sm:inline">New Month</span>
+          </button>
+
+          <div className="h-6 w-px bg-slate-300 dark:bg-slate-600 mx-1 hidden sm:block"></div>
+
+          <button
+            onClick={() => setShowAI(!showAI)}
+            title="Toggle AI Insights"
+            className={`p-2 rounded-2xl transition shadow-sm ${showAI ? 'bg-violet-100 text-violet-600 dark:bg-violet-900/50 dark:text-violet-400' : 'bg-white/80 dark:bg-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600'}`}
+          >
+            <Brain size={18} />
+          </button>
+
+          <button
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+            className="p-2 rounded-2xl bg-white/80 dark:bg-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 transition shadow-sm"
+          >
+            <SettingsIcon size={18} />
           </button>
         </div>
       </div>

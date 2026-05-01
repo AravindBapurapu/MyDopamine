@@ -29,7 +29,6 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#f6f7fb] dark:bg-slate-900 p-4 md:p-6 pb-24">
       <div className="mx-auto max-w-[1800px] space-y-5">
 
-        {/* Top bar */}
         <div className="flex justify-end items-center gap-3">
           {isSyncing && (
             <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -37,24 +36,6 @@ export default function Dashboard() {
               Syncing…
             </div>
           )}
-          {/* Toggle AI panel */}
-          <button
-            onClick={() => setShowAI((p) => !p)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition shadow-sm ${
-              showAI
-                ? "bg-violet-500 text-white border-violet-500"
-                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50"
-            }`}
-          >
-            <Brain size={14} />
-            AI Insights
-          </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm"
-          >
-            <SettingsIcon size={18} className="text-slate-500 dark:text-slate-400" />
-          </button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -65,23 +46,39 @@ export default function Dashboard() {
             exit={{ opacity: 0, y: -16 }}
             className="space-y-5"
           >
-            {/* Month header + add habit */}
-            <HabitControls />
+            {/* Premium Animated Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center md:text-left pb-2"
+            >
+              <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 tracking-tight inline-block">
+                Discipline Dashboard
+              </h1>
+            </motion.div>
 
-            {/* Report view tabs */}
+            {/* Month header + add habit */}
+            <HabitControls
+              showAI={showAI}
+              setShowAI={setShowAI}
+              setShowSettings={setShowSettings}
+            />
+
+            {/* Charts at top */}
+            <AnalyticsChart />
+
+
+            {/* Main habit grid */}
+            <HabitGrid />
+
+            {/* Report view tabs and Weekly/Monthly/Yearly reports - MOVED BELOW */}
             <ReportTabs />
 
             {/* Summary stat cards */}
             <SummaryCards />
 
-            {/* Main habit grid */}
-            <HabitGrid />
-
-            {/* Targets vs actual */}
-            <TargetsPanel />
-
-            {/* Charts */}
-            <AnalyticsChart />
+            {/* Targets vs actual
+            <TargetsPanel /> */}
 
             {/* AI Insights Panel — toggle-able */}
             <AnimatePresence>

@@ -64,36 +64,10 @@ export default function NoteModal() {
             </div>
 
             <div className="px-6 py-5 space-y-5">
-              {/* ✅ Performance rating */}
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                  How did it go?
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {PERFORMANCE_OPTIONS.map(({ value, label, icon: Icon, color, bg, border, activeBg }) => {
-                    const active = performance === value;
-                    return (
-                      <button
-                        key={value}
-                        onClick={() => setPerformance(value)}
-                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
-                          active
-                            ? `${activeBg} border-transparent text-white shadow-md`
-                            : `${bg} ${border} ${color} hover:opacity-80`
-                        }`}
-                      >
-                        <Icon size={18} />
-                        <span className="text-xs font-medium">{label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Note textarea */}
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                  What did you do? <span className="font-normal normal-case">(optional)</span>
+                  Daily Notes
                 </p>
                 <textarea
                   value={note}

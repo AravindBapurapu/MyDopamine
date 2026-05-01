@@ -5,6 +5,15 @@ import { calculateHabitStats } from "../utils/trackerUtils";
 import HabitRowProgress from "./HabitRowProgress";
 import { motion } from "framer-motion";
 
+// Week color palette for visual distinction
+const WEEK_COLORS = [
+  { bg: "rgba(139,92,246,0.08)", label: "rgba(139,92,246,0.12)" }, // Violet
+  { bg: "rgba(59,130,246,0.08)", label: "rgba(59,130,246,0.12)" }, // Blue
+  { bg: "rgba(34,197,94,0.08)", label: "rgba(34,197,94,0.12)" },   // Green
+  { bg: "rgba(248,113,113,0.08)", label: "rgba(248,113,113,0.12)" }, // Red
+  { bg: "rgba(251,146,60,0.08)", label: "rgba(251,146,60,0.12)" },  // Orange
+];
+
 export default function HabitGrid() {
   const { habits, handleCheckboxClick, askDeleteHabit, monthMeta } = useContext(HabitContext);
 
@@ -62,23 +71,29 @@ export default function HabitGrid() {
             <tr className="border-b border-slate-100 dark:border-slate-700">
               {/* Sticky habit column header */}
               <th
-                className="sticky left-0 z-20 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-                style={{ minWidth: 200, width: 200 }}
+                className="sticky left-0 z-20 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]"
               >
                 Habit
               </th>
 
               {/* Week spans */}
-              {monthMeta.weeks.map((week, wi) => (
-                <th
-                  key={week.label}
-                  colSpan={week.days.length}
-                  className="text-center text-[10px] font-semibold uppercase tracking-widest text-violet-500 dark:text-violet-400 py-2 px-1"
-                  style={{ backgroundColor: wi % 2 === 0 ? "rgba(139,92,246,0.04)" : "rgba(99,102,241,0.04)" }}
-                >
-                  {week.label}
-                </th>
-              ))}
+              {monthMeta.weeks.map((week, wi) => {
+                const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
+                return (
+                  <th
+                    key={week.label}
+                    colSpan={week.days.length}
+                    className="text-center text-[10px] font-semibold uppercase tracking-widest py-2 px-1 border-b-2"
+                    style={{
+                      backgroundColor: weekColor.bg,
+                      borderBottomColor: weekColor.label,
+                      color: wi === 0 ? "#a78bfa" : wi === 1 ? "#60a5fa" : wi === 2 ? "#4ade80" : wi === 3 ? "#f87171" : "#fb923c"
+                    }}
+                  >
+                    {week.label}
+                  </th>
+                );
+              })}
 
               {/* Stats cols */}
               <th className="sticky right-0 z-20 bg-white dark:bg-slate-800 border-l border-slate-100 dark:border-slate-700 px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center" style={{ minWidth: 90 }}>
@@ -92,26 +107,24 @@ export default function HabitGrid() {
 
             {/* Day numbers row */}
             <tr className="border-b-2 border-slate-200 dark:border-slate-600">
-              <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-700/60 border-r border-slate-100 dark:border-slate-700" style={{ minWidth: 200, width: 200 }} />
+              <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-700/60 border-r border-slate-100 dark:border-slate-700 w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]" />
 
-              {monthMeta.weeks.map((week, wi) =>
-                week.days.map((day) => {
+              {monthMeta.weeks.map((week, wi) => {
+                const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
+                return week.days.map((day) => {
                   const isToday = day.fullDate === today;
                   return (
                     <th
                       key={day.fullDate}
-                      className="text-center px-0.5 py-1.5"
+                      className="text-center px-0.5 py-1.5 border-b-2"
                       style={{
                         minWidth: 34,
                         width: 34,
-                        backgroundColor: isToday
-                          ? "rgba(139,92,246,0.12)"
-                          : wi % 2 === 0
-                          ? "rgba(139,92,246,0.04)"
-                          : "rgba(99,102,241,0.04)",
+                        backgroundColor: isToday ? weekColor.label : weekColor.bg,
+                        borderBottomColor: weekColor.label,
                       }}
                     >
-                      <div className={`text-[9px] font-medium ${isToday ? "text-violet-600 dark:text-violet-400" : "text-slate-400"}`}>
+                      <div className={`text-[9px] font-medium ${isToday ? "text-slate-800 dark:text-slate-100 font-bold" : "text-slate-400"}`}>
                         {day.shortDay}
                       </div>
                       <div
@@ -125,8 +138,8 @@ export default function HabitGrid() {
                       </div>
                     </th>
                   );
-                })
-              )}
+                });
+              })}
 
               <th className="sticky right-0 z-20 bg-slate-50 dark:bg-slate-700/60 border-l border-slate-100 dark:border-slate-700" colSpan={3} />
             </tr>
@@ -148,8 +161,7 @@ export default function HabitGrid() {
                 >
                   {/* Sticky habit name */}
                   <td
-                    className="sticky left-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 border-r border-slate-100 dark:border-slate-700 px-4 py-2.5 transition-colors"
-                    style={{ minWidth: 200, width: 200 }}
+                    className="sticky left-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 border-r border-slate-100 dark:border-slate-700 px-4 py-2.5 transition-colors w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]"
                   >
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color || "#8b5cf6" }} />
@@ -166,71 +178,48 @@ export default function HabitGrid() {
                   </td>
 
                   {/* Day checkboxes */}
-                  {monthMeta.weeks.map((week, wi) =>
-                    week.days.map((day) => {
+                  {monthMeta.weeks.map((week, wi) => {
+                    const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
+                    return week.days.map((day) => {
                       const progress = habit.progress?.[day.fullDate];
                       const checked = progress?.completed || false;
-                      const hasNote = checked && progress?.note;
-                      const perf = progress?.performance;
                       const isToday = day.fullDate === today;
-
-                      /*
-                        FIX #5: Color coding
-                        - checked + note → performance color (green/yellow/red)
-                        - checked + no note → blue
-                        - unchecked → empty / light gray
-                      */
-                      let cellBg = "transparent";
-                      let cellTitle = "";
-                      if (checked) {
-                        if (hasNote) {
-                          cellTitle = `${perf === "high" ? "✅" : perf === "medium" ? "⚡" : "😓"} ${progress.note}`;
-                          cellBg =
-                            perf === "high"
-                              ? "#22c55e"
-                              : perf === "medium"
-                              ? "#f59e0b"
-                              : "#ef4444";
-                        } else {
-                          cellBg = "#6366f1"; // checked but no note → indigo
-                        }
-                      }
 
                       return (
                         <td
                           key={day.fullDate}
                           className="p-0.5 text-center"
                           style={{
-                            backgroundColor: isToday
-                              ? "rgba(139,92,246,0.08)"
-                              : wi % 2 === 0
-                              ? "rgba(139,92,246,0.02)"
-                              : "rgba(99,102,241,0.02)",
+                            backgroundColor: isToday ? weekColor.label : weekColor.bg,
                           }}
                         >
                           <button
                             onClick={() => handleCheckboxClick(habit.id, day.fullDate)}
-                            title={cellTitle || (checked ? "Click to uncheck" : "Click to mark complete")}
-                            className="relative flex items-center justify-center mx-auto transition-all"
-                            style={{ width: 22, height: 22 }}
+                            title={checked ? "Uncheck" : "Mark complete"}
+                            className={`relative inline-flex items-center justify-center w-6 h-6 rounded-md transition-all duration-200 hover:scale-110 active:scale-95 ${
+                              checked
+                                ? "bg-violet-500 shadow-md hover:bg-violet-600"
+                                : "border-2 border-slate-300 dark:border-slate-500 hover:border-violet-400 dark:hover:border-violet-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                            }`}
                           >
-                            {checked ? (
-                              <div
-                                className="w-5 h-5 rounded-sm flex items-center justify-center shadow-sm"
-                                style={{ backgroundColor: cellBg }}
+                            {checked && (
+                              <svg
+                                className="w-4 h-4 text-white animate-in fade-in duration-150"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
                               >
-                                <svg viewBox="0 0 12 12" width={10} height={10} fill="none">
-                                  <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </div>
-                            ) : (
-                              <div className="w-5 h-5 rounded-sm border-2 border-slate-200 dark:border-slate-600 hover:border-violet-400 transition-colors" />
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
                             )}
                           </button>
                         </td>
                       );
-                    })
-                  )}
+                    });
+                  })}
 
                   {/* Stats */}
                   <td className="sticky right-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 border-l border-slate-100 dark:border-slate-700 px-3 py-2.5 text-center transition-colors" style={{ minWidth: 90 }}>
@@ -258,30 +247,6 @@ export default function HabitGrid() {
             })}
           </tbody>
 
-          {/* ── LEGEND ROW ── */}
-          <tfoot>
-            <tr className="border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/20">
-              <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-700/40 px-4 py-2.5 border-r border-slate-100 dark:border-slate-700" style={{ minWidth: 200 }}>
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Legend</span>
-              </td>
-              <td colSpan={monthMeta.days.length} className="px-4 py-2.5">
-                <div className="flex items-center gap-4 flex-wrap">
-                  {[
-                    { color: "#22c55e", label: "Crushed it" },
-                    { color: "#f59e0b", label: "Moderate" },
-                    { color: "#ef4444", label: "Struggled" },
-                    { color: "#6366f1", label: "Done (no note)" },
-                  ].map(({ color, label }) => (
-                    <div key={label} className="flex items-center gap-1.5">
-                      <div className="w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: color }} />
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </td>
-              <td colSpan={3} className="sticky right-0 bg-slate-50 dark:bg-slate-700/40 border-l border-slate-100 dark:border-slate-700" />
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>
