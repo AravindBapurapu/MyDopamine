@@ -1,0 +1,96 @@
+mutation CreateDemoData @transaction @auth(level: USER, insecureReason: "Seed data mutation, safe for any logged in user to run once.") {
+  user_insertMany(data: [
+    {
+      id: "b450e840-e29b-41d4-a716-446655440000",
+      displayName: "Alice Smith",
+      email: "alice.smith@example.com",
+      createdAt: "2023-01-01T10:00:00Z"
+    },
+    {
+      id: "a120e840-e29b-41d4-a716-446655440001",
+      displayName: "Bob Johnson",
+      email: "bob.johnson@example.com",
+      createdAt: "2023-01-02T11:00:00Z"
+    }
+  ])
+  goal_insertMany(data: [
+    {
+      id: "c780e840-e29b-41d4-a716-446655440002",
+      userId: "b450e840-e29b-41d4-a716-446655440000",
+      name: "Run a Marathon",
+      description: "Train for and complete a full marathon.",
+      targetDate: "2023-12-31",
+      status: "In Progress",
+      createdAt: "2023-01-15T09:00:00Z"
+    },
+    {
+      id: "d910e840-e29b-41d4-a716-446655440003",
+      userId: "a120e840-e29b-41d4-a716-446655440001",
+      name: "Learn to Play Guitar",
+      description: "Be able to play 5 songs proficiently.",
+      targetDate: "2023-10-01",
+      status: "Not Started",
+      createdAt: "2023-02-01T14:30:00Z"
+    }
+  ])
+  habit_insertMany(data: [
+    {
+      id: "e560e840-e29b-41d4-a716-446655440004",
+      userId: "b450e840-e29b-41d4-a716-446655440000",
+      goalId: "c780e840-e29b-41d4-a716-446655440002",
+      name: "Daily 5k Run",
+      description: "Run 5 kilometers every morning.",
+      frequency: "Daily",
+      reminderTime: "07:00",
+      createdAt: "2023-01-16T07:00:00Z"
+    },
+    {
+      id: "f010e840-e29b-41d4-a716-446655440005",
+      userId: "a120e840-e29b-41d4-a716-446655440001",
+      goalId: "d910e840-e29b-41d4-a716-446655440003",
+      name: "Guitar Practice",
+      description: "Practice guitar for 30 minutes.",
+      frequency: "Daily",
+      reminderTime: "18:00",
+      createdAt: "2023-02-02T18:00:00Z"
+    }
+  ])
+  dailyLog_insertMany(data: [
+    {
+      id: "g230e840-e29b-41d4-a716-446655440006",
+      userId: "b450e840-e29b-41d4-a716-446655440000",
+      habitId: "e560e840-e29b-41d4-a716-446655440004",
+      logDate: "2023-01-17",
+      isCompleted: true,
+      notes: "Felt good today!",
+      createdAt: "2023-01-17T07:30:00Z"
+    },
+    {
+      id: "h450e840-e29b-41d4-a716-446655440007",
+      userId: "a120e840-e29b-41d4-a716-446655440001",
+      habitId: "f010e840-e29b-41d4-a716-446655440005",
+      logDate: "2023-02-03",
+      isCompleted: true,
+      notes: "Learned a new chord.",
+      createdAt: "2023-02-03T18:45:00Z"
+    }
+  ])
+  journalEntry_insertMany(data: [
+    {
+      id: "i670e840-e29b-41d4-a716-446655440008",
+      userId: "b450e840-e29b-41d4-a716-446655440000",
+      entryDate: "2023-01-20",
+      content: "Reflecting on progress, feeling motivated.",
+      mood: "Happy",
+      createdAt: "2023-01-20T21:00:00Z"
+    },
+    {
+      id: "j890e840-e29b-41d4-a716-446655440009",
+      userId: "a120e840-e29b-41d4-a716-446655440001",
+      entryDate: "2023-02-05",
+      content: "Challenging but rewarding practice session.",
+      mood: "Content",
+      createdAt: "2023-02-05T20:30:00Z"
+    }
+  ])
+}

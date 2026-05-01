@@ -1,0 +1,42 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Goal @table {
+  user: User!
+  name: String!
+  createdAt: Timestamp!
+  status: String!
+  description: String
+  targetDate: Date
+}
+
+type Habit @table {
+  user: User!
+  goal: Goal!
+  name: String!
+  createdAt: Timestamp!
+  frequency: String!
+  description: String
+  reminderTime: String
+}
+
+type DailyLog @table {
+  user: User!
+  habit: Habit!
+  logDate: Date!
+  isCompleted: Boolean!
+  createdAt: Timestamp!
+  notes: String
+}
+
+type JournalEntry @table {
+  user: User!
+  entryDate: Date!
+  content: String!
+  createdAt: Timestamp!
+  mood: String
+}
