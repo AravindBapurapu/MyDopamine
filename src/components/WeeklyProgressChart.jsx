@@ -1,45 +1,3 @@
-// import { LineChart,Line,XAxis,YAxis,Tooltip } from "recharts"
-
-// const data=[
-
-// {day:1,value:2},
-// {day:2,value:5},
-// {day:3,value:6},
-// {day:4,value:3},
-// {day:5,value:7},
-
-// ]
-
-// export default function ProgressChart(){
-
-// return(
-
-// <div className="bg-gray-900 p-4 rounded">
-
-// <h2 className="text-white mb-3">
-// Monthly Progress
-// </h2>
-
-// <LineChart width={600} height={250} data={data}>
-
-// <XAxis dataKey="day"/>
-// <YAxis/>
-// <Tooltip/>
-
-// <Line
-// type="monotone"
-// dataKey="value"
-// stroke="#22c55e"
-// />
-
-// </LineChart>
-
-// </div>
-
-// )
-
-// }
-
 import {
   LineChart,
   Line,
@@ -50,20 +8,23 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { getMonthlyLineData } from "../utils/trackerUtils";
+import { getWeeklyReport } from "../utils/trackerUtils";
 
-export default function ProgressChart({ habits = [], days = [] }) {
-  const data = getMonthlyLineData(habits, days);
+export default function WeeklyProgressChart({
+  habits = [],
+  weeks = [],
+}) {
+  const data = getWeeklyReport(habits, weeks);
 
   return (
     <div className="bg-gray-900 p-4 rounded-lg w-full">
       <h2 className="text-white text-lg font-semibold mb-4">
-        Monthly Progress
+        Weekly Progress
       </h2>
 
       {data.length === 0 ? (
         <div className="h-[250px] flex items-center justify-center text-gray-400">
-          No data available
+          No weekly data available
         </div>
       ) : (
         <div className="w-full h-[250px]">
@@ -83,15 +44,9 @@ export default function ProgressChart({ habits = [], days = [] }) {
               />
 
               <XAxis
-                dataKey="day"
+                dataKey="name"
                 stroke="#9CA3AF"
                 tick={{ fill: "#9CA3AF" }}
-                label={{
-                  value: "Day",
-                  position: "insideBottom",
-                  offset: -5,
-                  fill: "#9CA3AF",
-                }}
               />
 
               <YAxis
@@ -112,7 +67,6 @@ export default function ProgressChart({ habits = [], days = [] }) {
                   `${value}%`,
                   "Progress",
                 ]}
-                labelFormatter={(day) => `Day ${day}`}
               />
 
               <Line
@@ -121,7 +75,7 @@ export default function ProgressChart({ habits = [], days = [] }) {
                 stroke="#22c55e"
                 strokeWidth={3}
                 dot={{
-                  r: 3,
+                  r: 4,
                 }}
                 activeDot={{
                   r: 6,
