@@ -63,6 +63,7 @@ export const HabitProvider = ({ children }) => {
   const [weekIndex, setWeekIndex] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const syncingRef = useRef(false);
+  const hasHydratedRef = useRef(false);
 
   const resolveMonthHabits = (monthData = {}, key = monthKey) =>
     Array.isArray(monthData?.[key]) ? monthData[key] : [];
@@ -87,6 +88,8 @@ export const HabitProvider = ({ children }) => {
   // ── LOAD DATA ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const loadData = async () => {
+      hasHydratedRef.current = false;
+
       if (currentUser) {
         const result = await firebaseService.loadHabits(currentUser.uid, monthKey);
         const normalized = Array.isArray(result?.data)
@@ -125,6 +128,8 @@ export const HabitProvider = ({ children }) => {
           setTrackerData({ ...parsed, monthsData: normalizedMonths });
         }
       }
+
+      hasHydratedRef.current = true;
     };
     loadData();
   }, [currentUser, selectedMonth, selectedYear]);
@@ -132,7 +137,7 @@ export const HabitProvider = ({ children }) => {
   // ── SAVE DATA ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const saveData = async () => {
-      if (syncingRef.current || !trackerData?.monthsData) return;
+      if (syncingRef.current || !trackerData?.monthsData || !hasHydratedRef.current) return;
       syncingRef.current = true;
       setIsSyncing(true);
 
@@ -147,7 +152,9 @@ export const HabitProvider = ({ children }) => {
 
           const result = await firebaseService.saveHabits(currentUser.uid, monthKey, h);
           if (!result.success) {
-            toast.error(result.offline ? "Sync failed — saved locally" : "Failed to sync data");
+            toast.error(result.offline ? "Sync failed — saved locally" : "Failed to sync data", {
+              id: "sync-offline-warning",
+            });
           }
         } else {
           localStorage.setItem("discipline_tracker_guest", JSON.stringify(trackerData));
