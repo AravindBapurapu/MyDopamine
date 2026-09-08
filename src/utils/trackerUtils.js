@@ -1,5 +1,10 @@
 // src/utils/trackerUtils.js
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+import isBetween from "dayjs/plugin/isBetween";
+
+dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
 
 export const monthNames = [
   "January","February","March","April","May","June",
@@ -13,20 +18,22 @@ export const monthNames = [
 */
 export function getMonthMeta(monthName, year) {
   const monthIndex = monthNames.indexOf(monthName);
-  const daysInMonth = dayjs(`${year}-${monthIndex + 1}-01`).daysInMonth();
-  
+  const monthStart = dayjs(`${year}-${monthIndex + 1}-01`);
+  const daysInMonth = monthStart.daysInMonth();
+  const startWeekday = monthStart.day();
+
   const days = [];
   for (let d = 1; d <= daysInMonth; d++) {
-    const fullDate = dayjs(`${year}-${String(monthIndex + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`).format("YYYY-MM-DD");
+    const fullDate = dayjs(`${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`).format("YYYY-MM-DD");
+    const weekIndex = Math.floor((d - 1 + startWeekday) / 7);
     days.push({
       dayNumber: d,
       fullDate,
       shortDay: dayjs(fullDate).format("ddd"),
-      weekIndex: Math.ceil((d + dayjs(`${year}-${monthIndex + 1}-01`).day()) / 7) - 1,
+      weekIndex,
     });
   }
 
-  // Group into weeks (Sun-Sat)
   const weeksMap = {};
   days.forEach((day) => {
     const wi = day.weekIndex;
@@ -34,10 +41,12 @@ export function getMonthMeta(monthName, year) {
     weeksMap[wi].push(day);
   });
 
-  const weeks = Object.entries(weeksMap).map(([wi, wDays]) => ({
-    label: `Week ${Number(wi) + 1}`,
-    days: wDays,
-  }));
+  const weeks = Object.entries(weeksMap)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([wi, wDays]) => ({
+      label: `Week ${Number(wi) + 1}`,
+      days: wDays,
+    }));
 
   return { days, weeks };
 }
@@ -87,6 +96,31 @@ export function getWeeklyReport(habits, weeks) {
     const percent = total ? Math.round((done / total) * 100) : 0;
     return { name: week.label, done, notDone, total, percent };
   });
+}
+
+export function getCurrentISOWeekProgress(habits, days, referenceDate = dayjs()) {
+  const safeHabits = Array.isArray(habits) ? habits : [];
+  const safeDays = Array.isArray(days) ? days.filter((day) => day && day.fullDate) : [];
+
+  if (!safeDays.length || !safeHabits.length) {
+    return { name: "Current week", done: 0, total: 0, percent: 0, weekDays: [] };
+  }
+
+  const weekDays = safeDays;
+  const total = safeHabits.length * weekDays.length;
+  const done = safeHabits.reduce((sum, habit) => {
+    return sum + weekDays.filter((day) => habit.progress?.[day.fullDate]?.completed).length;
+  }, 0);
+
+  const labelSource = dayjs(referenceDate);
+
+  return {
+    name: labelSource.isValid() ? `Week ${labelSource.isoWeek()}` : "Current week",
+    done,
+    total: Math.max(total, 0),
+    percent: total ? Math.round((done / total) * 100) : 0,
+    weekDays,
+  };
 }
 
 /* ─── Yearly Report ─────────────────────────────────────────────────────── */

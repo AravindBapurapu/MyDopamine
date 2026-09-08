@@ -1,11 +1,21 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { HabitProvider } from "./context/HabitContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import { applyTheme, getStoredTheme, getStoredThemePreset } from "./utils/theme";
 import "./App.css";
+
+function ThemeInitializer() {
+  useEffect(() => {
+    applyTheme(getStoredTheme(), getStoredThemePreset());
+  }, []);
+
+  return null;
+}
 
 function PrivateRoute({ children }) {
   const { currentUser } = useAuth();
@@ -39,6 +49,7 @@ function AppContent() {
 export default function App() {
   return (
     <Router>
+      <ThemeInitializer />
       <AuthProvider>
         <Toaster
           position="top-right"

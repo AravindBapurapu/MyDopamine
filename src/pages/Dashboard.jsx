@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { HabitContext } from "../context/HabitContext";
 import { useAuth } from "../context/AuthContext";
 import HabitControls from "../components/HabitControls";
@@ -8,15 +8,30 @@ import SummaryCards from "../components/SummaryCards";
 import HabitGrid from "../components/HabitGrid";
 import AnalyticsChart from "../components/AnalyticsChart";
 import AIInsightsPanel from "../components/AIInsightsPanel";
-import TargetsPanel from "../components/TargetsPanel";
 import FAB from "../components/FAB";
 import ConfirmModal from "../components/ConfirmModal";
 import NoteModal from "../components/NoteModal";
 import Settings from "./Settings";
-import { Settings as SettingsIcon, Loader2, Brain } from "lucide-react";
+import HUDAssistant from "../components/HUDAssistant";
+import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import WeeklyProgressChart from "../components/WeeklyProgressChart";
-import ProgressChart from "../components/ProgressChart";
+import { applyTheme, getStoredTheme, getStoredThemePreset } from "../utils/theme";
+
+const defaultDisplaySettings = {
+  showCompletionTrend: true,
+  showPaceTargets: true,
+  showBestHabitAndStreaks: true,
+  showAIInsights: true,
+};
+
+function readDisplaySettings() {
+  try {
+    const raw = localStorage.getItem("mydopamine_display_settings");
+    return raw ? { ...defaultDisplaySettings, ...JSON.parse(raw) } : defaultDisplaySettings;
+  } catch {
+    return defaultDisplaySettings;
+  }
+}
 
 export default function Dashboard() {
   // const { deleteModal, cancelDeleteHabit, confirmDeleteHabit, isSyncing } =
@@ -26,18 +41,49 @@ export default function Dashboard() {
     cancelDeleteHabit,
     confirmDeleteHabit,
     isSyncing,
-    reportView,
-    habits,
-    monthMeta,
   } = useContext(HabitContext);
   const { currentUser } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(true);
+  const [displaySettings, setDisplaySettings] = useState(readDisplaySettings);
+  const [theme, setTheme] = useState(getStoredTheme());
 
-  if (showSettings) return <Settings onBack={() => setShowSettings(false)} />;
+  const themePreset = getStoredThemePreset();
+  const logoFilter =
+    themePreset === "sunset"
+      ? "drop-shadow(0 0 12px var(--glow)) hue-rotate(30deg) saturate(1.25)"
+      : themePreset === "forest"
+        ? "drop-shadow(0 0 12px var(--glow)) hue-rotate(110deg) saturate(1.3)"
+        : themePreset === "midnight"
+          ? "drop-shadow(0 0 12px var(--glow)) hue-rotate(215deg) saturate(1.2)"
+          : "drop-shadow(0 0 12px var(--glow)) hue-rotate(285deg) saturate(1.35)";
+
+  useEffect(() => {
+    setShowAI(displaySettings.showAIInsights);
+  }, [displaySettings.showAIInsights]);
+
+  useEffect(() => {
+    localStorage.setItem("mydopamine_display_settings", JSON.stringify(displaySettings));
+  }, [displaySettings]);
+
+  useEffect(() => {
+    const handleThemeChange = (event) => {
+      const nextTheme = event.detail?.theme || getStoredTheme();
+      setTheme(nextTheme);
+    };
+
+    window.addEventListener("themechange", handleThemeChange);
+    return () => window.removeEventListener("themechange", handleThemeChange);
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme, getStoredThemePreset());
+  }, [theme]);
+
+  if (showSettings) return <Settings onBack={() => setShowSettings(false)} displaySettings={displaySettings} setDisplaySettings={setDisplaySettings} />;
 
   return (
-    <div className="min-h-screen bg-[#f6f7fb] dark:bg-slate-900 p-4 md:p-6 pb-24">
+    <div className="min-h-screen p-4 pb-24 md:p-6">
       <div className="mx-auto max-w-[1800px] space-y-5">
 
         <div className="flex justify-end items-center gap-3">
@@ -71,28 +117,36 @@ export default function Dashboard() {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center md:text-left pb-2"
+              className="pb-2"
             >
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                <img
-                  src="/logo1.png"
-                  alt="Discipline Dashboard logo"
-                  width={105}
-                  height={32}
-                  className="shrink-0"
-                />
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-center md:justify-start gap-2">
+                  <img
+                    src="/logo1.png"
+                    alt="Discipline Dashboard logo"
+                    width={105}
+                    height={32}
+                    className="shrink-0"
+                    style={{
+                      filter: logoFilter,
+                      opacity: 0.98,
+                    }}
+                  />
 
-                {/* <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 tracking-tight">
-      <u>Dashboard</u>
-    </h1> */}
                 <motion.div className="relative inline-flex">
                   <motion.h1
-                    className="text-2xl md:text-3xl font-extrabold tracking-tight"
+                    className="text-2xl md:text-3xl font-extrabold tracking-tight inline-block"
+                    style={{
+                      backgroundImage: "linear-gradient(90deg, var(--primary), var(--secondary), var(--accent))",
+                      backgroundClip: "text",
+                      WebkitBackgroundClip: "text",
+                      color: "transparent",
+                    }}
                   >
                     {"Dashboard".split("").map((letter, index) => (
                       <motion.span
                         key={index}
-                        className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-600"
+                        className="inline-block"
                         whileHover={{
                           y: -10,
                           scale: 1.2,
@@ -103,6 +157,12 @@ export default function Dashboard() {
                           stiffness: 500,
                           damping: 10,
                         }}
+                        style={{
+                          color: "transparent",
+                          backgroundImage: "linear-gradient(90deg, var(--primary), var(--secondary), var(--accent))",
+                          backgroundClip: "text",
+                          WebkitBackgroundClip: "text",
+                        }}
                       >
                         {letter}
                       </motion.span>
@@ -110,12 +170,16 @@ export default function Dashboard() {
                   </motion.h1>
 
                   <motion.div
-                    className="absolute left-0 right-0 -bottom-1 h-1 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-600"
+                    className="absolute left-0 right-0 -bottom-1 h-1 rounded-full"
+                    style={{
+                      backgroundImage: "linear-gradient(90deg, var(--primary), var(--secondary), var(--accent))",
+                    }}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ duration: 0.7, delay: 0.3 }}
                   />
                 </motion.div>
+                </div>
 
               </div>
             </motion.div>
@@ -128,7 +192,7 @@ export default function Dashboard() {
             />
 
             {/* Charts at top */}
-            <AnalyticsChart />
+            <AnalyticsChart displaySettings={displaySettings} />
 
 
             {/* Main habit grid */}
@@ -159,21 +223,24 @@ export default function Dashboard() {
             {/* Summary stat cards */}
             <SummaryCards />
 
-            {/* Targets vs actual
-            <TargetsPanel /> */}
-
-            {/* AI Insights Panel — toggle-able */}
-            <AnimatePresence>
-              {showAI && (
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -16 }}
-                >
-                  <AIInsightsPanel />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="grid gap-5 xl:grid-cols-[1.4fr_0.6fr]">
+              <div>
+                <AnimatePresence>
+                  {showAI && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -16 }}
+                    >
+                      <AIInsightsPanel />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div>
+                <HUDAssistant />
+              </div>
+            </div>
           </motion.div>
         </AnimatePresence>
 

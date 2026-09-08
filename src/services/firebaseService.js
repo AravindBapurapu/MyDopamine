@@ -1,26 +1,24 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc,
-  query,
-  where,
+import {
+  collection,
+  doc,
+  getDoc,
   getDocs,
-  arrayUnion,
-  arrayRemove,
-  serverTimestamp 
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 import { db, auth } from "../firebase/config";
-import { 
-  signInWithEmailAndPassword,
+import {
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged 
 } from "firebase/auth";
 
+const LOCAL_STORAGE_KEY = "mydopamine_habits_cache";
+
 class FirebaseService {
-  // Authentication methods
   async signUp(email, password, name) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -29,9 +27,9 @@ class FirebaseService {
         email,
         createdAt: serverTimestamp(),
         settings: {
-          theme: "light",
-          notifications: true
-        }
+          theme: "dark",
+          notifications: true,
+        },
       });
       return { success: true, user: userCredential.user };
     } catch (error) {
@@ -57,69 +55,113 @@ class FirebaseService {
     }
   }
 
-  // Habit data methods
-  async saveHabits(userId, monthKey, habits) {
+  getUserMonthDocPath(userId, monthKey) {
+    return `users/${userId}/years/${monthKey.split('-')[0]}/months/${monthKey}/habits`;
+  }
+
+  readLocalCache() {
     try {
-      const habitRef = doc(db, "habits", `${userId}_${monthKey}`);
-      await setDoc(habitRef, {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  writeLocalCache(data) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // ignore localStorage write errors for privacy/sandboxed modes
+    }
+  }
+
+  async saveHabits(userId, monthKey, habits) {
+    if (!userId) {
+      const safeHabits = Array.isArray(habits) ? habits.filter(Boolean) : [];
+      this.writeLocalCache({ ...this.readLocalCache(), [monthKey]: safeHabits });
+      return { success: true, offline: true };
+    }
+
+    try {
+      const safeHabits = Array.isArray(habits)
+        ? habits.filter(Boolean).map((habit) => ({
+            ...habit,
+            progress: habit?.progress || {},
+          }))
+        : [];
+
+      const docRef = doc(db, "users", userId, "years", String(monthKey.split('-')[0]), "months", monthKey, "habits");
+      await setDoc(docRef, {
         userId,
         monthKey,
-        habits,
-        updatedAt: serverTimestamp()
+        habits: safeHabits,
+        updatedAt: serverTimestamp(),
+        syncedAt: serverTimestamp(),
       }, { merge: true });
-      return { success: true };
+      const cache = this.readLocalCache();
+      this.writeLocalCache({ ...cache, [monthKey]: safeHabits });
+      return { success: true, offline: false };
     } catch (error) {
-      console.error("Error saving habits:", error);
-      return { success: false, error: error.message };
+      const safeHabits = Array.isArray(habits) ? habits.filter(Boolean) : [];
+      const cache = this.readLocalCache();
+      this.writeLocalCache({ ...cache, [monthKey]: safeHabits });
+      return { success: false, offline: true, error: error.message };
     }
   }
 
   async loadHabits(userId, monthKey) {
+    if (!userId) {
+      const cache = this.readLocalCache();
+      return { success: true, data: cache[monthKey] || [] };
+    }
+
     try {
-      const habitRef = doc(db, "habits", `${userId}_${monthKey}`);
-      const habitDoc = await getDoc(habitRef);
-      
-      if (habitDoc.exists()) {
-        return { success: true, data: habitDoc.data().habits };
+      const docRef = doc(db, "users", userId, "years", String(monthKey.split('-')[0]), "months", monthKey, "habits");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const habits = docSnap.data().habits || [];
+        const cache = this.readLocalCache();
+        this.writeLocalCache({ ...cache, [monthKey]: habits });
+        return { success: true, data: habits };
       }
-      return { success: true, data: null };
+
+      const cache = this.readLocalCache();
+      return { success: true, data: cache[monthKey] || null };
     } catch (error) {
-      console.error("Error loading habits:", error);
-      return { success: false, error: error.message };
+      const cache = this.readLocalCache();
+      return { success: true, data: cache[monthKey] || [], offline: true };
     }
   }
 
   async loadAllUserMonths(userId) {
     try {
-      const habitsRef = collection(db, "habits");
-      const q = query(habitsRef, where("userId", "==", userId));
-      const querySnapshot = await getDocs(q);
-      
+      const yearsDir = collection(db, "users", userId, "years");
+      const yearDocs = await getDocs(yearsDir);
       const monthsData = {};
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        monthsData[data.monthKey] = data.habits;
-      });
-      
+      for (const yearDoc of yearDocs.docs) {
+        const monthCollection = collection(db, "users", userId, "years", yearDoc.id, "months");
+        const monthDocs = await getDocs(monthCollection);
+        monthDocs.forEach((monthDoc) => {
+          const monthData = monthDoc.data();
+          if (monthData && Array.isArray(monthData.habits)) {
+            monthsData[monthDoc.id] = monthData.habits;
+          }
+        });
+      }
       return { success: true, data: monthsData };
     } catch (error) {
-      console.error("Error loading all months:", error);
       return { success: false, error: error.message };
     }
   }
 
-  // User settings
   async getUserSettings(userId) {
     try {
       const userRef = doc(db, "users", userId);
       const userDoc = await getDoc(userRef);
-      
-      if (userDoc.exists()) {
-        return { success: true, data: userDoc.data().settings };
-      }
+      if (userDoc.exists()) return { success: true, data: userDoc.data().settings || null };
       return { success: true, data: null };
     } catch (error) {
-      console.error("Error loading user settings:", error);
       return { success: false, error: error.message };
     }
   }
@@ -130,7 +172,6 @@ class FirebaseService {
       await updateDoc(userRef, { settings });
       return { success: true };
     } catch (error) {
-      console.error("Error updating settings:", error);
       return { success: false, error: error.message };
     }
   }

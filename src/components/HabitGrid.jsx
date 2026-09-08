@@ -15,15 +15,17 @@ const WEEK_COLORS = [
 ];
 
 export default function HabitGrid() {
-  const { habits, handleCheckboxClick, askDeleteHabit, monthMeta } = useContext(HabitContext);
+  const { habits = [], handleCheckboxClick, askDeleteHabit, monthMeta = { days: [] } } = useContext(HabitContext);
+  const safeHabits = Array.isArray(habits) ? habits : [];
+  const safeDays = Array.isArray(monthMeta.days) ? monthMeta.days : [];
 
   // Streak calculation per habit
   const habitStreaks = useMemo(() => {
-    return habits.map((habit) => {
+    return safeHabits.map((habit) => {
       let currentStreak = 0;
       let longestStreak = 0;
       let temp = 0;
-      const sorted = [...monthMeta.days].sort(
+      const sorted = [...safeDays].sort(
         (a, b) => new Date(a.fullDate) - new Date(b.fullDate)
       );
       for (const day of sorted) {
@@ -41,12 +43,12 @@ export default function HabitGrid() {
       }
       return { current: currentStreak, longest: longestStreak };
     });
-  }, [habits, monthMeta.days]);
+  }, [habits, safeDays]);
 
   // Today's full date for highlighting
   const today = new Date().toISOString().split("T")[0];
 
-  if (habits.length === 0) {
+  if (safeHabits.length === 0) {
     return (
       <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-16 text-center">
         <div className="text-4xl mb-3">📋</div>
@@ -77,7 +79,7 @@ export default function HabitGrid() {
               </th>
 
               {/* Week spans */}
-              {monthMeta.weeks.map((week, wi) => {
+                      {(monthMeta?.weeks || []).map((week, wi) => {
                 const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
                 return (
                   <th
@@ -109,7 +111,7 @@ export default function HabitGrid() {
             <tr className="border-b-2 border-slate-200 dark:border-slate-600">
               <th className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-700/60 border-r border-slate-100 dark:border-slate-700 w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]" />
 
-              {monthMeta.weeks.map((week, wi) => {
+              {(monthMeta?.weeks || []).map((week, wi) => {
                 const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
                 return week.days.map((day) => {
                   const isToday = day.fullDate === today;
@@ -139,7 +141,7 @@ export default function HabitGrid() {
                     </th>
                   );
                 });
-              })}
+              }) || null}
 
               <th className="sticky right-0 z-20 bg-slate-50 dark:bg-slate-700/60 border-l border-slate-100 dark:border-slate-700" colSpan={3} />
             </tr>
@@ -147,8 +149,8 @@ export default function HabitGrid() {
 
           {/* ── BODY ── */}
           <tbody>
-            {habits.map((habit, index) => {
-              const stats = calculateHabitStats(habit, monthMeta.days);
+            {safeHabits.map((habit, index) => {
+const stats = calculateHabitStats(habit, safeDays);
               const streak = habitStreaks[index];
 
               return (
@@ -178,7 +180,7 @@ export default function HabitGrid() {
                   </td>
 
                   {/* Day checkboxes */}
-                  {monthMeta.weeks.map((week, wi) => {
+                  {(monthMeta?.weeks || []).map((week, wi) => {
                     const weekColor = WEEK_COLORS[wi % WEEK_COLORS.length];
                     return week.days.map((day) => {
                       const progress = habit.progress?.[day.fullDate];

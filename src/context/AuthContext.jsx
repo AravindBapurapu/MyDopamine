@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
 import firebaseService from "../services/firebaseService";
+import { applyTheme, getStoredTheme, getStoredThemePreset } from "../utils/theme";
 import toast from "react-hot-toast";
 
 const AuthContext = createContext();
@@ -20,9 +21,15 @@ export const AuthProvider = ({ children }) => {
         const settings = await firebaseService.getUserSettings(user.uid);
         if (settings.success && settings.data) {
           setUserSettings(settings.data);
+          const nextTheme = settings.data.theme || getStoredTheme();
+          const nextPreset = settings.data.preset || getStoredThemePreset();
+          applyTheme(nextTheme, nextPreset);
+        } else {
+          applyTheme(getStoredTheme(), getStoredThemePreset());
         }
       } else {
         setUserSettings(null);
+        applyTheme(getStoredTheme(), getStoredThemePreset());
       }
       setLoading(false);
     });
