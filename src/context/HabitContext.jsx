@@ -64,6 +64,7 @@ export const HabitProvider = ({ children }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const syncingRef = useRef(false);
   const hasHydratedRef = useRef(false);
+  const syncWarningShownRef = useRef(false);
 
   const resolveMonthHabits = (monthData = {}, key = monthKey) =>
     Array.isArray(monthData?.[key]) ? monthData[key] : [];
@@ -89,6 +90,7 @@ export const HabitProvider = ({ children }) => {
   useEffect(() => {
     const loadData = async () => {
       hasHydratedRef.current = false;
+      syncWarningShownRef.current = false;
 
       if (currentUser) {
         const result = await firebaseService.loadHabits(currentUser.uid, monthKey);
@@ -151,10 +153,8 @@ export const HabitProvider = ({ children }) => {
             : [];
 
           const result = await firebaseService.saveHabits(currentUser.uid, monthKey, h);
-          if (!result.success) {
-            toast.error(result.offline ? "Sync failed — saved locally" : "Failed to sync data", {
-              id: "sync-offline-warning",
-            });
+          if (!result.success && !syncWarningShownRef.current && result.offline) {
+            syncWarningShownRef.current = true;
           }
         } else {
           localStorage.setItem("discipline_tracker_guest", JSON.stringify(trackerData));
