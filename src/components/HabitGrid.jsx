@@ -178,7 +178,12 @@ const stats = calculateHabitStats(habit, safeDays);
                       <div className="flex items-start gap-2 pr-1">
                         <div className="mt-0.5 h-6 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color || "#8b5cf6" }} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium leading-snug text-slate-700 dark:text-slate-200 break-words">{habit.name}</p>
+                          <p
+                            title={habit.name}
+                            className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-snug text-slate-700 dark:text-slate-200 cursor-help"
+                          >
+                            {habit.name}
+                          </p>
                           {streak.current > 1 && (
                             <div className="mt-1 flex items-center gap-0.5">
                               <Flame size={10} className="text-orange-400" />
