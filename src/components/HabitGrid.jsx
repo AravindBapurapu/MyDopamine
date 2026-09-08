@@ -163,18 +163,29 @@ const stats = calculateHabitStats(habit, safeDays);
                 >
                   {/* Sticky habit name */}
                   <td
-                    className="sticky left-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 border-r border-slate-100 dark:border-slate-700 px-4 py-2.5 transition-colors w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]"
+                    className="sticky left-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 border-r border-slate-100 dark:border-slate-700 px-3 py-2.5 transition-colors w-[120px] sm:w-[150px] md:w-[200px] min-w-[120px] sm:min-w-[150px] md:min-w-[200px]"
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color || "#8b5cf6" }} />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{habit.name}</p>
-                        {streak.current > 1 && (
-                          <div className="flex items-center gap-0.5 mt-0.5">
-                            <Flame size={10} className="text-orange-400" />
-                            <span className="text-[10px] text-orange-500 font-medium">{streak.current}d streak</span>
-                          </div>
-                        )}
+                    <div className="relative pr-7 min-h-[2.25rem]">
+                      <button
+                        onClick={() => askDeleteHabit(habit.id, habit.name)}
+                        className="absolute right-0 top-0 inline-flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+                        title="Delete habit"
+                        aria-label={`Delete ${habit.name}`}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+
+                      <div className="flex items-start gap-2 pr-1">
+                        <div className="mt-0.5 h-6 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color || "#8b5cf6" }} />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium leading-snug text-slate-700 dark:text-slate-200 break-words">{habit.name}</p>
+                          {streak.current > 1 && (
+                            <div className="mt-1 flex items-center gap-0.5">
+                              <Flame size={10} className="text-orange-400" />
+                              <span className="text-[10px] text-orange-500 font-medium">{streak.current}d streak</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -237,12 +248,16 @@ const stats = calculateHabitStats(habit, safeDays);
 
                   {/* Delete */}
                   <td className="bg-white dark:bg-slate-800 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-700/40 px-2 py-2.5 transition-colors" style={{ minWidth: 40 }}>
-                    <button
-                      onClick={() => askDeleteHabit(habit.id, habit.name)}
-                      className="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                    <div className="flex h-full items-center justify-center">
+                      <button
+                        onClick={() => askDeleteHabit(habit.id, habit.name)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+                        title="Delete habit"
+                        aria-label={`Delete ${habit.name}`}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </td>
                 </motion.tr>
               );

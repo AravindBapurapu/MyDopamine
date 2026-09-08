@@ -1,8 +1,11 @@
 // src/components/HabitControls.jsx
 import { useContext, useState } from "react";
+import toast from "react-hot-toast";
 import { HabitContext } from "../context/HabitContext";
 import { Plus, CalendarDays, Settings as SettingsIcon, Brain, Copy } from "lucide-react";
 import { MONTH_THEMES } from "../utils/aiInsights";
+
+const MAX_HABIT_NAME_LENGTH = 40;
 
 export default function HabitControls({ showAI, setShowAI, setShowSettings }) {
   const {
@@ -14,8 +17,16 @@ export default function HabitControls({ showAI, setShowAI, setShowSettings }) {
   const theme = MONTH_THEMES[selectedMonth] || MONTH_THEMES["January"];
 
   const handleAdd = () => {
-    if (!habitName.trim()) return;
-    addHabit(habitName);
+    const trimmed = habitName.trim();
+
+    if (!trimmed) return;
+
+    if (trimmed.length > MAX_HABIT_NAME_LENGTH) {
+      toast.error(`Habit name must be ${MAX_HABIT_NAME_LENGTH} characters or less.`);
+      return;
+    }
+
+    addHabit(trimmed);
     setHabitName("");
   };
 
@@ -123,6 +134,7 @@ export default function HabitControls({ showAI, setShowAI, setShowSettings }) {
         <input
           type="text"
           value={habitName}
+          maxLength={MAX_HABIT_NAME_LENGTH}
           onChange={(e) => setHabitName(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a new habit and press Enter..."

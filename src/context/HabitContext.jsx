@@ -21,6 +21,25 @@ import toast from "react-hot-toast";
 
 const currentMonth = monthNames[dayjs().month()];
 const currentYear = dayjs().year();
+const MAX_HABIT_NAME_LENGTH = 40;
+
+const validateHabitName = (value) => {
+  const trimmed = String(value ?? "").trim();
+
+  if (!trimmed) {
+    return { valid: false, trimmed: "", error: "Habit name is required." };
+  }
+
+  if (trimmed.length > MAX_HABIT_NAME_LENGTH) {
+    return {
+      valid: false,
+      trimmed,
+      error: `Habit name must be ${MAX_HABIT_NAME_LENGTH} characters or less.`,
+    };
+  }
+
+  return { valid: true, trimmed, error: "" };
+};
 
 const defaultData = {
   selectedMonth: currentMonth,
@@ -185,9 +204,14 @@ export const HabitProvider = ({ children }) => {
   // ── HABITS ─────────────────────────────────────────────────────────────────
   const addHabit = (nameOrConfig, options = {}) => {
     const input = typeof nameOrConfig === "string" ? { title: nameOrConfig, ...options } : (nameOrConfig || {});
-    const trimmed = (input.title || "").trim();
-    if (!trimmed) return;
+    const validated = validateHabitName(input.title || "");
 
+    if (!validated.valid) {
+      toast.error(validated.error);
+      return null;
+    }
+
+    const trimmed = validated.trimmed;
     const normalizedName = trimmed.toLowerCase();
     const currentMonthHabits = Array.isArray(monthsData?.[monthKey]) ? monthsData[monthKey] : [];
     const alreadyExists = currentMonthHabits.some((habit) => String(habit?.name || "").trim().toLowerCase() === normalizedName);
@@ -399,15 +423,19 @@ export const HabitProvider = ({ children }) => {
 
   const editHabit = ({ habitId, newTitle }) => {
     if (!habitId || !newTitle) return false;
-    const trimmed = newTitle.trim();
-    if (!trimmed) return false;
+
+    const validated = validateHabitName(newTitle);
+    if (!validated.valid) {
+      toast.error(validated.error);
+      return false;
+    }
 
     setTrackerData((prev) => ({
       ...prev,
       monthsData: {
         ...prev.monthsData,
         [monthKey]: (prev.monthsData[monthKey] || []).map((habit) =>
-          habit.id === habitId ? { ...habit, name: trimmed } : habit
+          habit.id === habitId ? { ...habit, name: validated.trimmed } : habit
         ),
       },
     }));
