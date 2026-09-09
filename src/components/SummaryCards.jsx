@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 */
 
 export default function SummaryCards() {
-  const { overallStats, reportView, weeklyReport, habits, monthMeta } = useContext(HabitContext);
+  const { overallStats, reportView, weeklyReport, habits, monthMeta, selectedWeekReport } = useContext(HabitContext);
 
   // ── Formula-based values ─────────────────────────────────────────────────
   const currentWeeklyAvg =
@@ -25,16 +25,27 @@ export default function SummaryCards() {
       ? 0
       : Math.round(weeklyReport.reduce((s, w) => s + w.percent, 0) / weeklyReport.length);
 
-  const percent = reportView === "monthly" ? overallStats.percent : currentWeeklyAvg;
+  const selectedWeekStats = reportView === "weekly" ? selectedWeekReport : null;
+  const percent = reportView === "monthly"
+    ? overallStats.percent
+    : selectedWeekStats
+      ? selectedWeekStats.percent
+      : currentWeeklyAvg;
   const done = reportView === "monthly"
     ? overallStats.totalDone
-    : weeklyReport.reduce((s, w) => s + w.done, 0);
+    : selectedWeekStats
+      ? selectedWeekStats.done
+      : weeklyReport.reduce((s, w) => s + w.done, 0);
   const notDone = reportView === "monthly"
     ? overallStats.totalNotDone
-    : weeklyReport.reduce((s, w) => s + w.notDone, 0);
+    : selectedWeekStats
+      ? selectedWeekStats.notDone
+      : weeklyReport.reduce((s, w) => s + w.notDone, 0);
   const total = reportView === "monthly"
     ? overallStats.totalPossible
-    : weeklyReport.reduce((s, w) => s + w.total, 0);
+    : selectedWeekStats
+      ? selectedWeekStats.total
+      : weeklyReport.reduce((s, w) => s + w.total, 0);
 
   // Best habit by completion %
   const habitStats = habits.map((h) => {

@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine
 } from "recharts";
 import { motion } from "framer-motion";
-import { calculateHabitStats, getCurrentISOWeekProgress } from "../utils/trackerUtils";
+import { calculateHabitStats, getCurrentISOWeekProgress, getSelectedWeekReport } from "../utils/trackerUtils";
 
 /* ─── Custom Tooltip ───────────────────────────────────────────────────────── */
 const CustomTooltip = ({ active, payload, label }) => {
@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 /* ─── Main Component ───────────────────────────────────────────────────────── */
 export default function AnalyticsChart({ displaySettings = {} }) {
   const {
-    overallStats, monthlyLineData, habits, monthMeta, reportView, weeklyReport, yearlyReport, weekIndex,
+    overallStats, monthlyLineData, habits, monthMeta, reportView, weeklyReport, yearlyReport, weekIndex, selectedWeekReport,
   } = useContext(HabitContext);
 
   const showPaceTargets = displaySettings.showPaceTargets !== false;
@@ -49,7 +49,9 @@ export default function AnalyticsChart({ displaySettings = {} }) {
     || monthMeta?.weeks?.[monthMeta.weeks.length - 1]
     || { label: "Current week", days: monthMeta?.days || [] };
 
-  const currentWeek = getCurrentISOWeekProgress(habits, activeWeek.days || monthMeta.days, activeWeek.days?.[0]?.fullDate || new Date());
+  const currentWeek = selectedWeekReport?.total || selectedWeekReport?.days?.length
+    ? selectedWeekReport
+    : getCurrentISOWeekProgress(habits, activeWeek.days || monthMeta.days, activeWeek.days?.[0]?.fullDate || new Date());
   const yearMonthsWithData = yearlyReport.filter((month) => month.total > 0);
   const yearlyAverage = yearMonthsWithData.length
     ? Math.round(yearMonthsWithData.reduce((sum, month) => sum + month.percent, 0) / yearMonthsWithData.length)

@@ -7,7 +7,7 @@ import { Target, Edit3, Check, X } from "lucide-react";
 const DEFAULT_TARGETS = { daily: 80, weekly: 70, monthly: 65 };
 
 export default function TargetsPanel() {
-  const { overallStats, weeklyReport, monthMeta, habits } = useContext(HabitContext);
+  const { overallStats, weeklyReport, monthMeta, habits, selectedWeekReport, reportView } = useContext(HabitContext);
   const [targets, setTargets] = useState(DEFAULT_TARGETS);
   const [editing, setEditing] = useState(null);
   const [editVal, setEditVal] = useState("");
@@ -18,17 +18,21 @@ export default function TargetsPanel() {
   const todayDone = habits.filter((h) => h.progress?.[today]?.completed).length;
   const todayPct = habits.length ? Math.round((todayDone / habits.length) * 100) : 0;
 
-  // This week's completion - find the week containing today
+  // This week's completion follows the selected week in weekly mode, otherwise
+  // falls back to the week that contains today so the panel stays accurate.
   let thisWeekPct = 0;
   let thisWeekDone = 0;
   let thisWeekTotal = 0;
-  
-  if (monthMeta.weeks && monthMeta.weeks.length > 0) {
-    // Find which week contains today
-    const thisWeek = monthMeta.weeks.find(week => 
+
+  if (reportView === "weekly" && selectedWeekReport) {
+    thisWeekPct = selectedWeekReport.percent;
+    thisWeekDone = selectedWeekReport.done;
+    thisWeekTotal = selectedWeekReport.total;
+  } else if (monthMeta.weeks && monthMeta.weeks.length > 0) {
+    const thisWeek = monthMeta.weeks.find(week =>
       week.days.some(day => day.fullDate === today)
     ) || monthMeta.weeks[monthMeta.weeks.length - 1];
-    
+
     if (thisWeek) {
       const weekReport = weeklyReport.find(w => w.name === thisWeek.label);
       if (weekReport) {

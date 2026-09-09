@@ -10,6 +10,7 @@ import {
   calculateOverallStats,
   getMonthMeta,
   getMonthlyLineData,
+  getSelectedWeekReport,
   getWeeklyReport,
   getYearlyReport,
   monthNames,
@@ -192,8 +193,20 @@ export const HabitProvider = ({ children }) => {
   const monthMeta = useMemo(() => getMonthMeta(selectedMonth, selectedYear), [selectedMonth, selectedYear]);
   const overallStats = useMemo(() => calculateOverallStats(habits, monthMeta.days), [habits, monthMeta.days]);
   const weeklyReport = useMemo(() => getWeeklyReport(habits, monthMeta.weeks), [habits, monthMeta.weeks]);
+  const selectedWeekReport = useMemo(
+    () => getSelectedWeekReport(habits, monthMeta.weeks, weekIndex),
+    [habits, monthMeta.weeks, weekIndex]
+  );
   const monthlyLineData = useMemo(() => getMonthlyLineData(habits, monthMeta.days), [habits, monthMeta.days]);
   const yearlyReport = useMemo(() => getYearlyReport(monthsData, selectedYear), [monthsData, selectedYear]);
+
+  useEffect(() => {
+    setWeekIndex((prev) => {
+      const next = Number.isFinite(Number(prev)) ? Number(prev) : 0;
+      const maxIndex = Math.max(monthMeta.weeks.length - 1, 0);
+      return Math.min(Math.max(next, 0), maxIndex);
+    });
+  }, [monthMeta.weeks.length, selectedMonth, selectedYear]);
 
   // ── SETTERS ────────────────────────────────────────────────────────────────
   const setMonth = (m) => setTrackerData((p) => ({ ...p, selectedMonth: m }));
@@ -455,6 +468,7 @@ export const HabitProvider = ({ children }) => {
         reportView,
         overallStats,
         weeklyReport,
+        selectedWeekReport,
         monthlyLineData,
         yearlyReport,
         monthsData,

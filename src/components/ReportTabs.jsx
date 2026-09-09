@@ -17,6 +17,7 @@ const TABS = [
 export default function ReportTabs() {
   const { reportView, setReportView, weekIndex, setWeekIndex, monthMeta } =
     useContext(HabitContext);
+  const safeWeeks = Array.isArray(monthMeta?.weeks) ? monthMeta.weeks : [];
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -39,13 +40,13 @@ export default function ReportTabs() {
       </div>
 
       {/* Week selector — only shown in weekly view */}
-      {reportView === "weekly" && (
+      {reportView === "weekly" && safeWeeks.length > 0 && (
         <select
-          value={weekIndex}
+          value={Math.min(Math.max(Number(weekIndex) || 0, 0), safeWeeks.length - 1)}
           onChange={(e) => setWeekIndex(Number(e.target.value))}
           className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm px-3 py-2 outline-none focus:border-violet-400 shadow-sm"
         >
-          {monthMeta.weeks.map((w, i) => (
+          {safeWeeks.map((w, i) => (
             <option key={i} value={i}>
               {w.label} ({w.days.length} days)
             </option>

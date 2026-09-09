@@ -1,7 +1,7 @@
 // src/utils/trackerUtils.js
 import dayjs from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
-import isBetween from "dayjs/plugin/isBetween";
+import isoWeek from "dayjs/plugin/isoWeek.js";
+import isBetween from "dayjs/plugin/isBetween.js";
 
 dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
@@ -86,15 +86,45 @@ export function getMonthlyLineData(habits, days) {
 }
 
 /* ─── Weekly Report ─────────────────────────────────────────────────────── */
+export function getSelectedWeekReport(habits, weeks, weekIndex = 0) {
+  const safeHabits = Array.isArray(habits) ? habits : [];
+  const safeWeeks = Array.isArray(weeks) ? weeks : [];
+
+  if (!safeWeeks.length) {
+    return { name: "No week", done: 0, notDone: 0, total: 0, percent: 0, days: [], index: 0 };
+  }
+
+  const normalizedIndex = Number.isFinite(Number(weekIndex)) ? Number(weekIndex) : 0;
+  const clampedIndex = Math.min(Math.max(normalizedIndex, 0), safeWeeks.length - 1);
+  const week = safeWeeks[clampedIndex] || safeWeeks[0];
+  const safeDays = Array.isArray(week?.days) ? week.days : [];
+  const total = safeHabits.length * safeDays.length;
+  const done = safeHabits.reduce((sum, habit) => {
+    return sum + safeDays.filter((d) => habit.progress?.[d.fullDate]?.completed).length;
+  }, 0);
+  const notDone = Math.max(total - done, 0);
+  const percent = total ? Math.round((done / total) * 100) : 0;
+
+  return {
+    name: week?.label || `Week ${clampedIndex + 1}`,
+    done,
+    notDone,
+    total,
+    percent,
+    days: safeDays,
+    index: clampedIndex,
+  };
+}
+
 export function getWeeklyReport(habits, weeks) {
-  return weeks.map((week) => {
-    const total = habits.length * week.days.length;
-    const done = habits.reduce((sum, habit) => {
-      return sum + week.days.filter((d) => habit.progress?.[d.fullDate]?.completed).length;
-    }, 0);
-    const notDone = total - done;
-    const percent = total ? Math.round((done / total) * 100) : 0;
-    return { name: week.label, done, notDone, total, percent };
+  return (Array.isArray(weeks) ? weeks : []).map((week, index) => {
+    const selected = getSelectedWeekReport(habits, [week], index);
+    return {
+      ...selected,
+      name: week.label,
+      index,
+      days: Array.isArray(week.days) ? week.days : [],
+    };
   });
 }
 
